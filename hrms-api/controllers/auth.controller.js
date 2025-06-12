@@ -41,3 +41,23 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const user = req.user;
+
+    const isMatch = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!isMatch) return res.status(400).json({ message: 'Incorrect old password' });
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.requiresPasswordReset = false;
+    user.isTempPassword = false;
+    user.tempPasswordExpiry = null;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
