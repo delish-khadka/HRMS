@@ -1,13 +1,71 @@
 const Employee = require('../models/Employee');
 const User = require('../models/User');
+const bcrypt = require('bcrypt');
 
 // Create a new employee profile
 exports.createEmployee = async (req, res) => {
   try {
-    const employee = new Employee(req.body);
+    const {
+      username,
+      email,
+      role,
+      firstName,
+      lastName,
+      dateOfBirth,
+      gender,
+      contactNumber,
+      address,
+      hireDate,
+      departmentId,
+      position,
+      salary,
+      employmentType
+    } = req.body;
+
+    // 1. Create user with temporary password
+    const tempPassword = Math.random().toString(36).slice(-8);
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+    const user = new User({
+      username,
+      email,
+      passwordHash,
+      role,
+      isActive: false,
+      isTempPassword: true,
+      tempPasswordExpiry: Date.now() + 1000 * 60 * 60 * 24, // 24 hours
+      requiresPasswordReset: true
+    });
+    await user.save();
+
+    // 2. Create employee profile
+    const employee = new Employee({
+      userId: user._id,
+      firstName,
+      lastName,
+      dateOfBirth,
+      gender,
+      contactNumber,
+      address,
+      hireDate,
+      departmentId,
+      position,
+      salary,
+      employmentType,
+      leaveBalance: {
+        annual: 12,
+        sick: 8
+      }
+    });
     await employee.save();
-    res.status(201).json(employee);
+
+    res.status(201).json({
+      message: 'Employee created',
+      tempPassword,
+      employeeId: employee._id
+    });
   } catch (err) {
+    console.error(err);
     res.status(400).json({ error: err.message });
   }
 };

@@ -3,6 +3,12 @@ const Department = require('../models/Department');
 exports.createDepartment = async (req, res) => {
   try {
     const { name, description, managerId } = req.body;
+
+    const existing = await Department.findOne({ name });
+    if (existing) {
+      return res.status(400).json({ message: 'Department already exists.' });
+    }
+
     const department = new Department({ name, description, managerId });
     await department.save();
     res.status(201).json(department);
