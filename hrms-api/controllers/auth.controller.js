@@ -54,6 +54,10 @@ exports.changePassword = async (req, res) => {
     user.requiresPasswordReset = false;
     user.isTempPassword = false;
     user.tempPasswordExpiry = null;
+
+    if (!user.isActive) {
+      user.isActive = true;
+    }
     await user.save();
 
     res.json({ message: 'Password changed successfully' });

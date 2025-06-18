@@ -12,6 +12,6 @@ router.get('/me', authenticate(), (req, res) => {
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 
-router.post('/change-password', authenticate, authController.changePassword);
-
+// router.post('/change-password', authenticate(), authController.changePassword);
+router.post('/change-password', authenticate([], { allowInactive: true }), authController.changePassword);
 module.exports = router;
