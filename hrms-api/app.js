@@ -9,7 +9,9 @@ const authRoutes = require('./routes/auth.routes');
 const employeeRoutes = require('./routes/employeeRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const leaveRoutes = require('./routes/leaveRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
 
+app.use('/api/attendance',attendanceRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/employees', employeeRoutes);
