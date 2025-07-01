@@ -17,5 +17,7 @@ app.use("/api/leaves", leaveRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/auth", authRoutes);
+app.use('/uploads', express.static('uploads'));
+
 
 module.exports = app;
