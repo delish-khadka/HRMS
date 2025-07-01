@@ -55,20 +55,40 @@ exports.createEmployee = async (req, res) => {
   }
 };
 
-// Get all employees (Admin/Manager only)
 exports.getAllEmployees = async (req, res) => {
   try {
-    const employees = await Employee.find().populate("userId departmentId");
-    res.json(employees);
+    const employees = await Employee.find().populate("departmentId");
+
+    const updated = employees.map((emp) => ({
+      ...emp.toObject(),
+      photo: emp.photo ? `${req.protocol}://${req.get("host")}/${emp.photo}` : null,
+    }));
+
+    res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
 // Get single employee by ID
+// exports.getEmployeeById = async (req, res) => {
+//   try {
+//     const employee = await Employee.findById(req.params.id).populate("userId departmentId");
+//     if (!employee) return res.status(404).json({ message: "Employee not found" });
+
+// // If user is employee and not accessing own data
+// if (req.user.role === "employee" && !employee.userId.equals(req.user._id)) {
+//   return res.status(403).json({ message: "Forbidden" });
+// }
+
+//     res.json(employee);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 exports.getEmployeeById = async (req, res) => {
   try {
-    const employee = await Employee.findById(req.params.id).populate("userId departmentId");
+    const employee = await Employee.findById(req.params.id).populate("departmentId");
     if (!employee) return res.status(404).json({ message: "Employee not found" });
 
     // If user is employee and not accessing own data
@@ -76,7 +96,10 @@ exports.getEmployeeById = async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    res.json(employee);
+    const empObj = employee.toObject();
+    empObj.photo = employee.photo ? `${req.protocol}://${req.get("host")}/${employee.photo}` : null;
+
+    res.json(empObj);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -117,17 +140,31 @@ exports.deleteEmployee = async (req, res) => {
 // Get logged-in employee's profile
 exports.getMyProfile = async (req, res) => {
   try {
-    const employee = await Employee.findOne({ userId: req.user._id }).populate("departmentId", "name description").populate({
-      path: "userId",
-      select: "username email role lastLogin isActive",
-    });
+    const employee = await Employee.findOne({ userId: req.user._id }).populate("departmentId");
+    if (!employee) return res.status(404).json({ message: "Employee not found" });
 
-    if (!employee) {
-      return res.status(404).json({ message: "Employee profile not found." });
-    }
+    const empObj = employee.toObject();
+    empObj.photo = employee.photo ? `${req.protocol}://${req.get("host")}/${employee.photo}` : null;
 
-    res.json(employee);
+    res.json(empObj);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+// exports.getMyProfile = async (req, res) => {
+//   try {
+//     const employee = await Employee.findOne({ userId: req.user._id }).populate("departmentId", "name description").populate({
+//       path: "userId",
+//       select: "username email role lastLogin isActive",
+//     });
+
+//     if (!employee) {
+//       return res.status(404).json({ message: "Employee profile not found." });
+//     }
+
+//     res.json(employee);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
